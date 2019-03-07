@@ -16,4 +16,4 @@ class Solution:
 if __name__ == '__main__':
     s = Solution()
     assert s.minimumLengthEncoding(["time", "me", "bell"]) == 10
-    assert s.minimumLengthEncoding(["time", "atime", "btime"]) == 12
+    assert s.minimumLengthEncoding(["time", "atime", "btime", "btime"]) == 12

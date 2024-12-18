@@ -1,80 +1,75 @@
-### Day 13: Claw Contraption ---
-Next up: the lobby of a resort on a tropical island. The Historians take a moment to admire the hexagonal floor tiles before spreading out.
+### Day 17: Chronospatial Computer
+The Historians push the button on their strange device, but this time, you all just feel like you're falling.
 
-Fortunately, it looks like the resort has a new arcade! Maybe you can win some prizes from the claw machines?
+"Situation critical", the device announces in a familiar voice. "Bootstrapping process failed. Initializing debugger...."
 
-The claw machines here are a little unusual. Instead of a joystick or directional buttons to control the claw, these machines have two buttons labeled A and B. Worse, you can't just put in a token and play; it costs 3 tokens to push the A button and 1 token to push the B button.
+The small handheld device suddenly unfolds into an entire computer! The Historians look around nervously before one of them tosses it to you.
 
-With a little experimentation, you figure out that each machine's buttons are configured to move the claw a specific amount to the right (along the X axis) and a specific amount forward (along the Y axis) each time that button is pressed.
+This seems to be a 3-bit computer: its program is a list of 3-bit numbers (0 through 7), like 0,1,2,3. The computer also has three registers named A, B, and C, but these registers aren't limited to 3 bits and can instead hold any integer.
 
-Each machine contains one prize; to win the prize, the claw must be positioned exactly above the prize on both the X and Y axes.
+The computer knows eight instructions, each identified by a 3-bit number (called the instruction's opcode). Each instruction also reads the 3-bit number after it as an input; this is called its operand.
 
-You wonder: what is the smallest number of tokens you would have to spend to win as many prizes as possible? You assemble a list of every machine's button behavior and prize location (your puzzle input). For example:
+A number called the instruction pointer identifies the position in the program from which the next opcode will be read; it starts at 0, pointing at the first 3-bit number in the program. Except for jump instructions, the instruction pointer increases by 2 after each instruction is processed (to move past the instruction's opcode and its operand). If the computer tries to read an opcode past the end of the program, it instead halts.
 
+So, the program 0,1,2,3 would run the instruction whose opcode is 0 and pass it the operand 1, then run the instruction having opcode 2 and pass it the operand 3, then halt.
+
+There are two types of operands; each instruction specifies the type of its operand. The value of a literal operand is the operand itself. For example, the value of the literal operand 7 is the number 7. The value of a combo operand can be found as follows:
+
+- Combo operands 0 through 3 represent literal values 0 through 3.
+- Combo operand 4 represents the value of register A.
+- Combo operand 5 represents the value of register B.
+- Combo operand 6 represents the value of register C.
+- Combo operand 7 is reserved and will not appear in valid programs.
+
+The eight instructions are as follows:
+
+The adv instruction (opcode 0) performs division. The numerator is the value in the A register. The denominator is found by raising 2 to the power of the instruction's combo operand. (So, an operand of 2 would divide A by 4 (2^2); an operand of 5 would divide A by 2^B.) The result of the division operation is truncated to an integer and then written to the A register.
+
+The bxl instruction (opcode 1) calculates the bitwise XOR of register B and the instruction's literal operand, then stores the result in register B.
+
+The bst instruction (opcode 2) calculates the value of its combo operand modulo 8 (thereby keeping only its lowest 3 bits), then writes that value to the B register.
+
+The jnz instruction (opcode 3) does nothing if the A register is 0. However, if the A register is not zero, it jumps by setting the instruction pointer to the value of its literal operand; if this instruction jumps, the instruction pointer is not increased by 2 after this instruction.
+
+The bxc instruction (opcode 4) calculates the bitwise XOR of register B and register C, then stores the result in register B. (For legacy reasons, this instruction reads an operand but ignores it.)
+
+The out instruction (opcode 5) calculates the value of its combo operand modulo 8, then outputs that value. (If a program outputs multiple values, they are separated by commas.)
+
+The bdv instruction (opcode 6) works exactly like the adv instruction except that the result is stored in the B register. (The numerator is still read from the A register.)
+
+The cdv instruction (opcode 7) works exactly like the adv instruction except that the result is stored in the C register. (The numerator is still read from the A register.)
+
+Here are some examples of instruction operation:
+
+If register C contains 9, the program 2,6 would set register B to 1.
+If register A contains 10, the program 5,0,5,1,5,4 would output 0,1,2.
+If register A contains 2024, the program 0,1,5,4,3,0 would output 4,2,5,6,7,7,7,7,3,1,0 and leave 0 in register A.
+If register B contains 29, the program 1,7 would set register B to 26.
+If register B contains 2024 and register C contains 43690, the program 4,0 would set register B to 44354.
+The Historians' strange device has finished initializing its debugger and is displaying some information about the program it is trying to run (your puzzle input). For example:
 ```
+Register A: 729
+Register B: 0
+Register C: 0
 
-Button A: X+94, Y+34
-Button B: X+22, Y+67
-Prize: X=8400, Y=5400
-
-Button A: X+26, Y+66
-Button B: X+67, Y+21
-Prize: X=12748, Y=12176
-
-Button A: X+17, Y+86
-Button B: X+84, Y+37
-Prize: X=7870, Y=6450
-
-Button A: X+69, Y+23
-Button B: X+27, Y+71
-Prize: X=18641, Y=10279
+Program: 0,1,5,4,3,0
 ```
+Your first task is to determine what the program is trying to output. To do this, initialize the registers to the given values, then run the given program, collecting any output produced by out instructions. (Always join the values produced by out instructions with commas.) After the above program halts, its final output will be 4,6,3,5,6,3,5,2,1,0.
 
-This list describes the button configuration and prize location of four different claw machines.
-
-For now, consider just the first claw machine in the list:
-
-- Pushing the machine's A button would move the claw 94 units along the X axis and 34 units along the Y axis.
-- Pushing the B button would move the claw 22 units along the X axis and 67 units along the Y axis.
-- The prize is located at X=8400, Y=5400; this means that from the claw's initial position, it would need to move exactly 8400 units along the X axis and exactly 5400 units along the Y axis to be perfectly aligned with the prize in this machine.
-- The cheapest way to win the prize is by pushing the A button 80 times and the B button 40 times. This would line up the claw along the X axis (because 80*94 + 40*22 = 8400) and along the Y axis (because 80*34 + 40*67 = 5400). Doing this would cost 80*3 tokens for the A presses and 40*1 for the B presses, a total of 280 tokens.
-
-For the second and fourth claw machines, there is no combination of A and B presses that will ever win a prize.
-
-For the third claw machine, the cheapest way to win the prize is by pushing the A button 38 times and the B button 86 times. Doing this would cost a total of 200 tokens.
-
-So, the most prizes you could possibly win is two; the minimum tokens you would have to spend to win all (two) prizes is 480.
-
-You estimate that each button would need to be pressed no more than 100 times to win a prize. How else would someone be expected to play?
-
-Figure out how to win as many prizes as possible. What is the fewest tokens you would have to spend to win all possible prizes?
+Using the information provided by the debugger, initialize the registers to the given values, then run the program. Once it halts, what do you get if you use commas to join the values it output into a single string?
 
 
-### Part Two 
-As you go to win the first prize, you discover that the claw is nowhere near where you expected it would be. Due to a unit conversion error in your measurements, the position of every prize is actually 10000000000000 higher on both the X and Y axis!
+### Part Two
+Digging deeper in the device's manual, you discover the problem: this program is supposed to output another copy of the program! Unfortunately, the value in register A seems to have been corrupted. You'll need to find a new value to which you can initialize register A so that the program's output instructions produce an exact copy of the program itself.
 
-Add 10000000000000 to the X and Y position of every prize. After making this change, the example above would now look like this:
-
-
+For example:
 ```
-Button A: X+94, Y+34
-Button B: X+22, Y+67
-Prize: X=10000000008400, Y=10000000005400
+Register A: 2024
+Register B: 0
+Register C: 0
 
-Button A: X+26, Y+66
-Button B: X+67, Y+21
-Prize: X=10000000012748, Y=10000000012176
-
-Button A: X+17, Y+86
-Button B: X+84, Y+37
-Prize: X=10000000007870, Y=10000000006450
-
-Button A: X+69, Y+23
-Button B: X+27, Y+71
-Prize: X=10000000018641, Y=10000000010279
+Program: 0,3,5,4,3,0
 ```
+This program outputs a copy of itself if register A is instead initialized to 117440. (The original initial value of register A, 2024, is ignored.)
 
-
-Now, it is only possible to win a prize on the second and fourth claw machines. Unfortunately, it will take many more than 100 presses to do so.
-
-Using the corrected prize coordinates, figure out how to win as many prizes as possible. What is the fewest tokens you would have to spend to win all possible prizes?
+What is the lowest positive initial value for register A that causes the program to output a copy of itself?

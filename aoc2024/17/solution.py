@@ -134,14 +134,14 @@ def parse(file):
 def find_a(data):
     candidates = [0]
     for length in range(1, len(data[3]) + 1):
-        out = []
-        for num in candidates:
-            for offset in range(8):
-                a = 8 * num + offset
+        new_c = []
+        for c in candidates:
+            for i in range(8):
+                a = 8 * c + i
                 if Computer(a, data[1], data[2]).run(data[3]) == data[3][-length:]:
-                    out.append(a)
+                    new_c.append(a)
 
-        candidates = out
+        candidates = new_c
 
     data[0] = min(candidates)
 

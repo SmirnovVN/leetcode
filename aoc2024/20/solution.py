@@ -1,61 +1,64 @@
-from collections import defaultdict
 from heapq import heappop, heappush
-from math import inf
 
 directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
+
 def move(matrix, pico, max_cheats):
     m, n = len(matrix), len(matrix[0])
-
-    q = []
-    sx = sy = ex = ey = 0
     for i in range(m):
         for j in range(n):
             if matrix[i][j] == 'S':
-                sx, sy = j, i
-                q.append((0, 0, j, i, 0, None))
-                matrix[i][j] = '.'
-            if matrix[i][j] == 'E':
-                ex, ey = j, i
-                matrix[i][j] = '.'
-    def h(hx, hy):
-        return abs(hx - ex) + abs(hy - ey)
+                si, sj = i, j
+            elif matrix[i][j] == 'E':
+                ei, ej = i, j
 
-    visited = [[defaultdict(lambda: inf) for _ in range(n)] for _ in range(m)]
-    wocheats = inf
-    result = defaultdict(list)
-    while q:
-        _, path, x, y, cheats, ch_start = heappop(q)
-        if path > wocheats - pico:
-            continue
-        visited[y][x][ch_start] = min(path, visited[y][x][ch_start])
-        if (x, y) == (ex, ey) and path <= wocheats - pico:
-            if wocheats < inf:
-                result[ch_start].append(path)
+    def bfs(si, sj, ei, ej):
+        q = []
+        heappush(q, (0, si, sj))
+        dist = {}
+        best = None
+
+        while q:
+            sc, ci, cj = heappop(q)
+
+            if (ci, cj) not in dist:
+                dist[(ci, cj)] = sc
             else:
-                wocheats = path
-                q = [(0, 0, sx, sy, max_cheats, None)]
-                # visited = [[defaultdict(lambda: inf) for _ in range(n)] for _ in range(m)]
                 continue
-        for d in directions:
-            nx, ny = x + d[1], y + d[0]
-            if 0 <= nx < n and 0 <= ny < m and (cheats > 0 or visited[ny][nx][None] - pico >= path + 1):
-                if matrix[ny][nx] == '.' and visited[ny][nx][ch_start] >= path + 1:
-                    if cheats != max_cheats:
-                        ncheats = 0
-                    else:
-                        ncheats = cheats
-                    heappush(q, (path + 1 + h(nx, ny), path + 1, nx, ny, ncheats, ch_start))
-                elif matrix[ny][nx] == '#' and cheats > 0:
-                    if cheats == max_cheats:
-                        nch_start = (nx, ny)
-                    else:
-                        nch_start = ch_start
-                    if visited[ny][nx][nch_start] >= path + 1:
-                        heappush(q, (path + 1 + h(nx, ny), path + 1, nx, ny, cheats - 1, nch_start))
-    print(result)
-    return len(result)
 
+            if ci == ei and cj == ej:
+                best = sc
+
+            for d in directions:
+                ni, nj = ci + d[0], cj + d[1]
+                if 0 <= ni < m and 0 <= nj < n and matrix[ni][nj] != '#':
+                    heappush(q, (sc + 1, ni, nj))
+
+        return dist, best
+
+    def step_distance(a, b):  # manhattan
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    distances_start, best_no_cheat = bfs(si, sj, ei, ej)
+    distances_end, _ = bfs(ei, ej, si, sj)
+
+    result = 0
+
+    for i in range(m):
+        for j in range(n):
+            if matrix[i][j] == '#' or (i, j) not in distances_start:
+                continue
+            for k in range(max(i - max_cheats, 0), min(i + max_cheats, m - 1) + 1):
+                for o in range(max(j - max_cheats, 0), min(j + max_cheats, n - 1) + 1):
+                    sd = step_distance((i, j), (k, o))
+                    if sd > max_cheats or matrix[k][o] == '#' or (k, o) not in distances_end:
+                        continue
+                    dist = distances_start[(i, j)] + distances_end[(k, o)] + sd
+
+                    if dist <= best_no_cheat - pico:
+                        result += 1
+
+    return result
 
 
 def parse(file):
@@ -69,18 +72,14 @@ def parse(file):
 if __name__ == '__main__':
     with open('test_1.txt') as file:
         test_1 = parse(file)
-    with open('test_2.txt') as file:
-        test_2 = parse(file)
-    with open('test_3.txt') as file:
-        test_3 = parse(file)
     with open('input.txt') as file:
         inp = parse(file)
-    #
-    res = move(test_1, 20, 1)
+
+    res = move(test_1, 20, 2)
     print(res)
     assert res == 5
 
-    res = move(inp, 100, 1)
+    res = move(inp, 100, 2)
     print(res)
 
     res = move(test_1, 50, 20)
@@ -89,6 +88,3 @@ if __name__ == '__main__':
 
     res = move(inp, 100, 20)
     print(res)
-
-# 1839 - too high
-# 1445

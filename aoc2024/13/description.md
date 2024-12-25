@@ -1,4 +1,4 @@
-### Day 13: Claw Contraption ---
+### Day 13: Claw Contraption 
 Next up: the lobby of a resort on a tropical island. The Historians take a moment to admire the hexagonal floor tiles before spreading out.
 
 Fortunately, it looks like the resort has a new arcade! Maybe you can win some prizes from the claw machines?

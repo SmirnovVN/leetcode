@@ -1,4 +1,4 @@
-### Day 19: Linen Layout ---
+### Day 19: Linen Layout
 Today, The Historians take you up to the hot springs on Gear Island! Very suspiciously, absolutely nothing goes wrong as they begin their careful search of the vast field of helixes.
 
 Could this finally be your chance to visit the onsen next door? Only one way to find out.
